@@ -4,8 +4,8 @@ namespace SpecificationPattern
     {
         public int Skip { get; set; }
         public int Take { get; set; }
+        public Filter Filter { get; set; } = new Filter();
         public List<Sort> Sort { get; set; } = new List<Sort>();
-        public List<Filter> Filter { get; set; } = new List<Filter>();
     }
 
     record Filter
@@ -13,6 +13,8 @@ namespace SpecificationPattern
         public string Field { get; set; }
         public object Value { get; set; }
         public string Operator { get; set; }
+        public string Logic { get; set; }
+        public List<Filter> Filters { get; set; } = new List<Filter>();
     }
 
     record Sort

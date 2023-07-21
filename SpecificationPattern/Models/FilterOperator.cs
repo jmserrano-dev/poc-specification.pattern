@@ -27,4 +27,10 @@ namespace SpecificationPattern
         public const string LowerThanDay = "ltinday";
         public const string LowerThanOrEqualDay = "lteinday";
     }
+
+    public static class FilterLogic
+    {
+        public const string And = "and";
+        public const string Or = "or";
+    }
 }

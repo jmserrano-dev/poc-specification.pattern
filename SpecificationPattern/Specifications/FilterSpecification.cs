@@ -4,28 +4,44 @@ namespace SpecificationPattern
 {
     class FilterSpecification<T> : Specification<T>
     {
-        private readonly List<Filter> _filter;
+        private readonly Filter _filter;
         private readonly ParameterExpression _parameter;
 
-        public FilterSpecification(List<Filter> filter)
+        private FilterSpecification(Filter filter)
         {
             _filter = filter;
             _parameter = Expression.Parameter(typeof(T));
         }
 
+        public static FilterSpecification<T> Create(Filter filter)
+        {
+            return new FilterSpecification<T>(filter);
+        }
+
         public override Expression<Func<T, bool>> ToExpression()
         {
-            var expression = _filter
-                .Select(GenerateExpression)
-                .Aggregate(GenerateIdentityExpression(), Expression.AndAlso);
-
-
+            var expression = Generate(_filter);
             return Expression.Lambda<Func<T, bool>>(expression, _parameter);
         }
 
-        private static BinaryExpression GenerateIdentityExpression()
+        private Expression Generate(Filter filter)
         {
-            return Expression.Equal(Expression.Constant(true), Expression.Constant(true));
+            if (!filter.Filters.Any())
+                return GenerateIdentityExpression(filter.Logic);
+
+            return GroupingWithLogicOperator(filter.Filters.Select((currentFilter) =>
+            {
+                return currentFilter.Filters.Any()
+                    ? Generate(currentFilter)
+                    : GroupingWithLogicOperator(filter.Filters.Select(GenerateExpression), filter);
+            }), filter);
+        }
+
+        private static Expression GenerateIdentityExpression(string logic)
+        {
+            return logic == FilterLogic.And
+                ? Expression.Equal(Expression.Constant(true), Expression.Constant(true))
+                : Expression.Equal(Expression.Constant(true), Expression.Constant(false));
         }
 
         private Expression GenerateExpression(Filter filter)
@@ -47,11 +63,21 @@ namespace SpecificationPattern
                 FilterOperator.IsNotNull => Expression.NotEqual(propertyExpression, nullExpression),
                 FilterOperator.IsEmpty => Expression.Equal(propertyExpression, emptyExpression),
                 FilterOperator.IsNotEmpty => Expression.NotEqual(propertyExpression, emptyExpression),
-                FilterOperator.Contains => Expression.Call(propertyExpression, typeof(string).GetMethod("Contains", new[] { typeof(string) }), valueExpression),
-                FilterOperator.StartsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), valueExpression),
-                FilterOperator.EndsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), valueExpression),
-                _ => GenerateIdentityExpression(),
+                FilterOperator.Contains => Expression.Call(propertyExpression, typeof(string).GetMethod("Contains", new[] { typeof(string) })!, valueExpression),
+                FilterOperator.StartsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!, valueExpression),
+                FilterOperator.EndsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!, valueExpression),
+                _ => GenerateIdentityExpression(filter.Logic),
             }; ;
+        }
+
+        private static Expression GroupingWithLogicOperator(IEnumerable<Expression> source, Filter filter)
+        {
+            return source.Aggregate(GenerateIdentityExpression(filter.Logic), (expresion, currentExpression) =>
+            {
+                return filter.Logic == FilterLogic.And
+                    ? Expression.AndAlso(expresion, currentExpression)
+                    : Expression.OrElse(expresion, currentExpression);
+            });
         }
     }
 }
