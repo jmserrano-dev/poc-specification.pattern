@@ -11,5 +11,7 @@ namespace SpecificationPattern
         public bool IsAdult { get; set; }
 
         public List<string> Hobbies { get; set; }
+        
+        public DateTime Date { get; set; }
     }
 }

@@ -68,9 +68,19 @@ namespace SpecificationPattern
                 FilterOperator.StartsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!, valueExpression),
                 FilterOperator.EndsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!, valueExpression),
                 FilterOperator.ContainsList => Expression.Call(propertyExpression, typeof(List<string>).GetMethod("Contains", new[] { typeof(string) })!, valueExpression),
-                FilterOperator.DoesNotContainsList=> Expression.Not(Expression.Call(propertyExpression, typeof(List<string>).GetMethod("Contains", new[] { typeof(string) })!, valueExpression)),
+                FilterOperator.DoesNotContainsList => Expression.Not(Expression.Call(propertyExpression, typeof(List<string>).GetMethod("Contains", new[] { typeof(string) })!, valueExpression)),
+                FilterOperator.InDay => Expression.AndAlso(
+                    Expression.GreaterThanOrEqual(propertyExpression, valueExpression),
+                    Expression.LessThan(propertyExpression, Expression.Call(valueExpression, typeof(DateTime).GetMethod("AddDays", new[] { typeof(double) })!, Expression.Constant(1.0)))),
+                FilterOperator.NotInDay =>Expression.OrElse(
+                    Expression.LessThan(propertyExpression, valueExpression),
+                    Expression.GreaterThanOrEqual(propertyExpression, Expression.Call(valueExpression, typeof(DateTime).GetMethod("AddDays", new[] { typeof(double) })!, Expression.Constant(1.0)))),
+                FilterOperator.GreaterThanDay => Expression.GreaterThan(propertyExpression, Expression.Call(valueExpression, typeof(DateTime).GetMethod("AddDays", new[] { typeof(double) })!, Expression.Constant(1.0))),
+                FilterOperator.GreaterThanOrEqualDay => Expression.GreaterThanOrEqual(propertyExpression, valueExpression),
+                FilterOperator.LowerThanDay => Expression.LessThan(propertyExpression, valueExpression),
+                FilterOperator.LowerThanOrEqualDay => Expression.LessThanOrEqual(propertyExpression, Expression.Call(valueExpression, typeof(DateTime).GetMethod("AddDays", new[] { typeof(double) })!, Expression.Constant(1.0))),
                 _ => GenerateIdentityExpression(filter.Logic),
-            }; ;
+            };
         }
 
         private static Expression GroupingWithLogicOperator(IEnumerable<Expression> source, Filter filter)

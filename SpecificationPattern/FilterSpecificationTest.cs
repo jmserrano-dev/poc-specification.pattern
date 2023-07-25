@@ -12,14 +12,16 @@ public class FilterSpecificationTest
             Name = "John",
             Age = 33,
             IsAdult = true,
-            Hobbies = new() { "Footbal", "Padel" }
+            Hobbies = new() { "Footbal", "Padel" },
+            Date = new DateTime(2023, 7, 25, 12, 0 , 0)
         },
         new Person {
             Id = 2,
             Name = "Mary",
             Age = 15,
             IsAdult = false,
-            Hobbies = new() { "Footbal", "Tennis" }
+            Hobbies = new() { "Footbal", "Tennis" },
+            Date = new DateTime(2023, 7, 27)
         }
     };
 
@@ -119,6 +121,60 @@ public class FilterSpecificationTest
                 Filters = new List<Filter>
                 {
                     new Filter { Field = nameof(Person.Hobbies), Value = "Padel", Operator = FilterOperator.DoesNotContainsList }
+                }
+            }
+        };
+
+        var result = persons
+           .AsQueryable()
+           .Where(FilterSpecification<Person>.Create(filters.Filter).ToExpression())
+           .ToList();
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(persons.Last());
+    }
+
+    [Fact]
+    public void InDay()
+    {
+        var filters = new ListRequest
+        {
+            Skip = 0,
+            Take = 100,
+            Sort = new List<Sort>(),
+            Filter = new Filter
+            {
+                Logic = FilterLogic.And,
+                Filters = new List<Filter>
+                {
+                    new Filter { Field = nameof(Person.Date), Value = new DateTime(2023, 7, 25), Operator = FilterOperator.InDay }
+                }
+            }
+        };
+
+        var result = persons
+           .AsQueryable()
+           .Where(FilterSpecification<Person>.Create(filters.Filter).ToExpression())
+           .ToList();
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(persons.First());
+    }
+
+    [Fact]
+    public void NotInDay()
+    {
+        var filters = new ListRequest
+        {
+            Skip = 0,
+            Take = 100,
+            Sort = new List<Sort>(),
+            Filter = new Filter
+            {
+                Logic = FilterLogic.And,
+                Filters = new List<Filter>
+                {
+                    new Filter { Field = nameof(Person.Date), Value = new DateTime(2023, 7, 25), Operator = FilterOperator.NotInDay }
                 }
             }
         };
