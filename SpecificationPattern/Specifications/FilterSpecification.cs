@@ -64,8 +64,11 @@ namespace SpecificationPattern
                 FilterOperator.IsEmpty => Expression.Equal(propertyExpression, emptyExpression),
                 FilterOperator.IsNotEmpty => Expression.NotEqual(propertyExpression, emptyExpression),
                 FilterOperator.Contains => Expression.Call(propertyExpression, typeof(string).GetMethod("Contains", new[] { typeof(string) })!, valueExpression),
+                FilterOperator.DoesNotContains => Expression.Not(Expression.Call(propertyExpression, typeof(string).GetMethod("Contains", new[] { typeof(string) })!, valueExpression)),
                 FilterOperator.StartsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!, valueExpression),
                 FilterOperator.EndsWith => Expression.Call(propertyExpression, typeof(string).GetMethod("EndsWith", new[] { typeof(string) })!, valueExpression),
+                FilterOperator.ContainsList => Expression.Call(propertyExpression, typeof(List<string>).GetMethod("Contains", new[] { typeof(string) })!, valueExpression),
+                FilterOperator.DoesNotContainsList=> Expression.Not(Expression.Call(propertyExpression, typeof(List<string>).GetMethod("Contains", new[] { typeof(string) })!, valueExpression)),
                 _ => GenerateIdentityExpression(filter.Logic),
             }; ;
         }

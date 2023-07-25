@@ -15,9 +15,9 @@ namespace SpecificationPattern
         public const string StartsWith = "startswith"; // ✅
         public const string EndsWith = "endswith"; // ✅
         public const string Contains = "contains"; // ✅
-        public const string DoesNotContains = "doesnotcontain";
-        public const string ContainsList = "containslist";
-        public const string DoesNotContainsList = "doesnotcontainlist";
+        public const string DoesNotContains = "doesnotcontain"; // ✅
+        public const string ContainsList = "containslist"; // ✅
+        public const string DoesNotContainsList = "doesnotcontainlist"; // ✅
         public const string IsEmpty = "isempty"; // ✅
         public const string IsNotEmpty = "isnotempty"; // ✅
         public const string InDay = "inday";

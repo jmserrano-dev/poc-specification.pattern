@@ -5,15 +5,27 @@ namespace SpecificationPattern;
 
 public class FilterSpecificationTest
 {
+    private static readonly List<Person> persons = new()
+    {
+        new Person {
+            Id = 1,
+            Name = "John",
+            Age = 33,
+            IsAdult = true,
+            Hobbies = new() { "Footbal", "Padel" }
+        },
+        new Person {
+            Id = 2,
+            Name = "Mary",
+            Age = 15,
+            IsAdult = false,
+            Hobbies = new() { "Footbal", "Tennis" }
+        }
+    };
+
     [Fact]
     public void SimpleFiltering()
     {
-        var persons = new List<Person>
-        {
-            new Person { Id = 1, Name = "John", Age = 33, IsAdult = true },
-            new Person { Id = 2, Name = "Mary", Age = 15, IsAdult = false }
-        };
-
         var filters = new ListRequest
         {
             Skip = 0,
@@ -40,14 +52,89 @@ public class FilterSpecificationTest
     }
 
     [Fact]
-    public void ComplexFiltering()
+    public void DoesNotContain()
     {
-        var persons = new List<Person>
+        var filters = new ListRequest
         {
-            new Person { Id = 1, Name = "John", Age = 33, IsAdult = true },
-            new Person { Id = 2, Name = "Mary", Age = 15, IsAdult = false }
+            Skip = 0,
+            Take = 100,
+            Sort = new List<Sort>(),
+            Filter = new Filter
+            {
+                Logic = FilterLogic.And,
+                Filters = new List<Filter>
+                {
+                    new Filter { Field = nameof(Person.Name), Value = "o", Operator = FilterOperator.DoesNotContains },
+                }
+            }
         };
 
+        var result = persons
+           .AsQueryable()
+           .Where(FilterSpecification<Person>.Create(filters.Filter).ToExpression())
+           .ToList();
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(persons.Last());
+    }
+
+    [Fact]
+    public void ContainsList()
+    {
+        var filters = new ListRequest
+        {
+            Skip = 0,
+            Take = 100,
+            Sort = new List<Sort>(),
+            Filter = new Filter
+            {
+                Logic = FilterLogic.And,
+                Filters = new List<Filter>
+                {
+                    new Filter { Field = nameof(Person.Hobbies), Value = "Padel", Operator = FilterOperator.ContainsList }
+                }
+            }
+        };
+
+        var result = persons
+           .AsQueryable()
+           .Where(FilterSpecification<Person>.Create(filters.Filter).ToExpression())
+           .ToList();
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(persons.First());
+    }
+
+    [Fact]
+    public void DoesNotCContainList()
+    {
+        var filters = new ListRequest
+        {
+            Skip = 0,
+            Take = 100,
+            Sort = new List<Sort>(),
+            Filter = new Filter
+            {
+                Logic = FilterLogic.And,
+                Filters = new List<Filter>
+                {
+                    new Filter { Field = nameof(Person.Hobbies), Value = "Padel", Operator = FilterOperator.DoesNotContainsList }
+                }
+            }
+        };
+
+        var result = persons
+           .AsQueryable()
+           .Where(FilterSpecification<Person>.Create(filters.Filter).ToExpression())
+           .ToList();
+
+        result.Should().HaveCount(1);
+        result.Should().Contain(persons.Last());
+    }
+
+    [Fact]
+    public void ComplexFiltering()
+    {
         var request = new ListRequest
         {
             Skip = 0,

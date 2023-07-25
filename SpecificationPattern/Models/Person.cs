@@ -9,5 +9,7 @@ namespace SpecificationPattern
         public int Age { get; set; }
 
         public bool IsAdult { get; set; }
+
+        public List<string> Hobbies { get; set; }
     }
 }
